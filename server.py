@@ -13,6 +13,8 @@ async def archive(request: web.Request) -> StreamResponse:
     archive_hash = request.match_info.get('archive_hash', '')
 
     cwd = os.path.join('test_photos', archive_hash)
+    if not os.path.exists(cwd):
+        raise web.HTTPNotFound(text='Архив не существует или был удален')
 
     proc = await asyncio.create_subprocess_exec(
         'zip', '-r', '-qq', '-', '.', stdout=asyncio.subprocess.PIPE, cwd=cwd)
