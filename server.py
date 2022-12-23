@@ -28,11 +28,22 @@ async def archive(request: web.Request) -> StreamResponse:
     await response.prepare(request)
 
     chunk_number = 1
-    while not proc.stdout.at_eof():
-        data = await proc.stdout.read(DATA_CHUNK)
-        logger.debug(f'Sending archive chunk {chunk_number} ...')
-        await response.write(data)
-        chunk_number += 1
+    try:
+        while not proc.stdout.at_eof():
+            data = await proc.stdout.read(n=DATA_CHUNK)
+            logger.debug(f'Sending archive chunk {chunk_number} ...')
+            await response.write(data)
+            chunk_number += 1
+    except ConnectionError:
+        logging.debug('Download was interrupted')
+    finally:
+        logging.debug('Killing...')
+        try:
+            proc.kill()
+            await proc.communicate()
+            logging.debug('Process was killed')
+        except ProcessLookupError:
+            logging.debug('Process has killed already')
 
     return response
 
