@@ -24,7 +24,7 @@ class Options:
 
 async def archive(request: web.Request, options: Options) -> StreamResponse:
     response = web.StreamResponse()
-    archive_hash = request.match_info.get('archive_hash', '')
+    archive_hash = request.match_info['archive_hash']
 
     cwd = options.path / archive_hash
     if not os.path.exists(cwd):
